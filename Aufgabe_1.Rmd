@@ -1,0 +1,127 @@
+---
+title: "Aufgabe 1"
+author: "Nicolas Bock"
+date: "5. April 2016"
+output: html_document
+---
+
+Teil A
+--------
+Es wird von *sails.clld.org* ein Datensatz importiert. Hierfür werden die Daten in einem passenden Format gespeichert und anschließend in R importiert. Es werden zwei Datensätze **Passive constructions** und **Antipassive constructions** in die Variable *passive.const* gespeichert. Da die Headerinformation nicht übertragbar ist, wird diese manuell hinzugefügt.
+
+```{r}
+passive.const <- read.table("ARGEX8-1.tab", skip="1", quote="", header=FALSE, dec=".", sep="\t", na.strings="NA", fill=TRUE)
+colnames(passive.const) <- c("Iso-639-3", "Name", "Value", "Description", "latitude", "longitude", "Family")
+
+antipassive.const <- read.table("ARGEX9-1.tab", skip="1", quote="", header=FALSE, dec=".", sep="\t", na.strings="NA", fill=TRUE)
+colnames(antipassive.const) <- c("Iso-639-3", "Name", "Value", "Description", "latitude", "longitude", "Family")
+```
+
+Kurze Ausgabe der ersten Zeilen zum Test:
+
+```{r}
+antipassive.const[1:5,]
+
+```
+
+Teil B
+-------
+Als erstes stellt sich die Frage, um was für Daten es sich handelt.
+```{r}
+head(passive.const)
+```
+
+Es sind offensichtlich Längen- und Breitenangaben enthalten. Diese können mit dem R package *maps* visualisiert werden:
+
+```{r}
+library(maps)
+map("world")
+points(antipassive.const$longitude, passive.const$latitude,  pch=22, col="blue")
+points(antipassive.const$longitude, passive.const$latitude,  pch=20, col="red")
+```
+
+In beiden Datensätzen sind offensichtlich die gleichen Sprachen in Südamerika enthalten. Dies zeigt sich auch mit folgender Abfrage:
+
+```{r}
+dim(passive.const)
+
+dim(antipassive.const)
+```
+
+Weiterhin sind in den Spalten Value/Description Informationen über den Gehalt von Passiv bzw. Antipassiv gespeichert. Beim Passivdatensatz gibt es eine weitere Differenzierung. Wird der Passiv über ein Hilfsverb (*auxiliary*), Verbkonjugation (*verbal morphology*) oder beides (*both*) gebildet. Es gibt natürlich auch Sprachen, die kein Passiv (*none*) besitzen. 
+
+Im Folgenden sind die möglichen Passivoptionen und die absolute Anzahl der Sprachen zu sehen:
+
+```{r}
+table(passive.const$Description)
+
+```
+
+In Prozent wäre das dann:
+```{r}
+round(table(passive.const$Description) / 0.95, 2)
+
+```
+
+Hat die Mehrheit der ausgewerteten Sprachen nun eine Passivform oder nicht? Hierfür werden *auxiliary*, *verbal morphology* und *both* zusammenaddiert.
+
+```{r}
+passive.absolute <- round(table(passive.const$Description) / 0.95, 2)
+passive.absolute.yes <- passive.absolute[1] + passive.absolute[2] + passive.absolute[5]
+# Ausgabe der Summe der Anteile mit Passiv
+passive.absolute.yes
+
+```
+Es zeigt sich, dass die Mehrheit der Sprachen kein Passiv (47.37 %) besitzten. Unter den Sprachen, die ein Passiv besitzen, bedienen sich die meisten Sprachen einer eigenen Verbform für das Passiv.
+
+Eingängiger ist eine visuelle Darstellung in einem Balkendiagramm. 
+
+```{r}
+barplot(table(passive.const$Description) / 0.95, ylab="Anteil [%]", axis.lty = 1, space = 0.8, cex.axis = 0.6, cex.names= 0.5)
+
+```
+
+Nach dem Lexikon der Sprachwissenschaft von Hadumod Bußmann gibt es für die Antipassivform lediglich die Vorkommensform *verbal morphology*. Für den Antipassivdatensatz gibt es deshalb lediglich eine binäre Information. 
+
+```{r}
+round(table(antipassive.const$Description) / 0.95, 2)
+```
+
+In einem Balkendiagramm dargestellt erkennt man die Seltenheit des Antipassivs.
+```{r}
+barplot(table(antipassive.const$Description) / 0.95, ylab="Anteil [%]", space = 0.3, cex.axis = 0.8, cex.names= 0.8)
+
+```
+
+
+
+Teil C
+-------
+Nach Analyse der Datensätzen einzeln, können die Daten nun hinsichtlich verschiedener Zusammenhänge untersucht werden. Können Sprachen Passiv und Antipassiv besitzen? Hierfür werden die Sprachen extrahiert, die ein Antipassiv besitzen.
+
+```{r}
+antipassive.sel.yes <- subset(antipassive.const,antipassive.const$Description=="true")
+antipassive.sel.yes[2]
+```
+
+Welche Passivbildung haben diese Sprachen?
+```{r}
+antipassive.sel.yes.bin <- antipassive.const$Description == "true" 
+passive.const[antipassive.sel.yes.bin,c(2,4)]
+
+```
+
+Es zeigt sich, dass Passiv und Antipassiv parallel vorkommen können. Weiterhin zeigen die Daten, dass bei Sprachen die eine Antipassiv-Bildung erlauben, das Passiv durch Verbkonjugation (*verbal morphology*) oder überhaupt nicht gebildet wird. 
+
+Es stellt sich die Frage, ob alle Sprachen mit einer Passivbildung mittels Verbkonjugation ein Antipassiv besitzen.
+
+```{r}
+passive.sel.vm.bin <- passive.const$Description == "verbal morphology" 
+antipassive.const[passive.sel.vm.bin,c(2,4)]
+
+```
+
+Dies konnte nicht bestätigt werden.
+
+
+
