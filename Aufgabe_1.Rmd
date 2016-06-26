@@ -1,6 +1,6 @@
 ---
 title: "Aufgabe 1"
-author: "Nicolas Bock"
+author: "ramdetoo"
 date: "5. April 2016"
 output: html_document
 ---
